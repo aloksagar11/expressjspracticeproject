@@ -7,6 +7,7 @@ require('./db/conn');
 const registerEmployee = require('./models/resisters')
 const bcrypt = require('bcryptjs')
 const app= express();
+const cookieParser = require('cookie-parser');
 const staticPath = path.join(__dirname,"../public")
 // app.use('/public', express.static(path.join(__dirname, 'public'), { 'extensions': ['css'] }));
 const templatePath = path.join(__dirname,"../templates/views")
@@ -15,6 +16,7 @@ const partialsPath = path.join(__dirname,"../templates/partials")
 
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
+app.use(cookieParser());
 app.set('view engine','hbs')
 app.set("views",templatePath) 
 hbs.registerPartials(partialsPath);
@@ -48,6 +50,10 @@ app.post('/login',async(req,resp)=>{
         const password = await bcrypt.compare(userPassword,userData.password)
         const token = await userData.generateAuthToken();
         console.log(token)
+        resp.cookie("rememberme",token,{
+            expires: new Date(Date.now() + 10000), 
+            httpOnly: true 
+        })
         if(password)
             resp.redirect('/')
         else
@@ -81,6 +87,10 @@ app.post("/register",async(req,resp)=>{
 
             const token = await registerNewEmp.generateAuthToken();
 
+            resp.cookie("jwt",token,{
+                expires: new Date(Date.now() + 10000), 
+                httpOnly: true 
+            })
             
             const result = await registerNewEmp.save();
             if (result)
