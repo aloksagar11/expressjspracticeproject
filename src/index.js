@@ -12,7 +12,7 @@ const staticPath = path.join(__dirname,"../public")
 // app.use('/public', express.static(path.join(__dirname, 'public'), { 'extensions': ['css'] }));
 const templatePath = path.join(__dirname,"../templates/views")
 const partialsPath = path.join(__dirname,"../templates/partials")
-
+const auth = require('./middleware/auth');
 
 app.use(express.json())
 app.use(express.urlencoded({extended:false}))
@@ -24,7 +24,7 @@ hbs.registerPartials(partialsPath);
 app.use('/public',express.static(staticPath,{ 'extensions': ['css'] }))
     
 app.get("/",(req,resp)=>{
-    // resp.send("this is home page from main file")\
+    // resp.send("this is home page from main file")
     resp.render('index')
 })
 
@@ -32,12 +32,18 @@ app.get("/register",(req,resp)=>{
     resp.render('register')})
 
 app.get("/about",(req,resp)=>{
-    resp.send("This is about")
+    resp.render('about')
 })
 
 
 app.get("/login",(req,resp)=>{
     resp.render('login')
+})
+
+app.get("/secret",auth,(req,resp)=>{
+
+    
+    resp.render('secret')
 })
 
 app.post('/login',async(req,resp)=>{
@@ -49,9 +55,9 @@ app.post('/login',async(req,resp)=>{
 
         const password = await bcrypt.compare(userPassword,userData.password)
         const token = await userData.generateAuthToken();
-        console.log(token)
-        resp.cookie("rememberme",token,{
-            expires: new Date(Date.now() + 10000), 
+        // console.log(token)
+        resp.cookie("jwt",token,{
+            expires: new Date(Date.now() + 600000), 
             httpOnly: true 
         })
         if(password)
